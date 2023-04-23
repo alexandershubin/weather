@@ -1,12 +1,12 @@
 import React, {FC} from "react";
 import type {IForecastDay} from "../../interfaces";
 
-interface WeatherDetailsProps {
+interface IWeatherDetailsProps {
     day: IForecastDay;
     handleDayClickClose:() => void
 }
 
-const WeatherDetails:FC<WeatherDetailsProps> = ({ day, handleDayClickClose }) => {
+const WeatherDetails:FC<IWeatherDetailsProps> = ({ day, handleDayClickClose }) => {
     return (
         <div className="m-2">
             <h2>{day.date}</h2>
