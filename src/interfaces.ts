@@ -15,18 +15,18 @@ export interface IDayForecast {
     daily_chance_of_snow: string;
 }
 
-export interface ForecastDay {
+export interface IForecastDay {
     date: string;
     day: IDayForecast
 }
 
-export interface WeatherForecastData {
+export interface IWeatherForecastData {
     forecast: {
-        forecastday: ForecastDay[];
+        forecastday: IForecastDay[];
     };
 }
 
-export interface WeatherData {
+export interface IWeatherData {
     location: {
         name: string;
         country: string;

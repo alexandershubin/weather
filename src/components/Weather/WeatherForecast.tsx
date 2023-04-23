@@ -1,16 +1,20 @@
 import React, {FC, useState} from "react";
 import WeatherDetails from "./WeatherDetails";
-import type {ForecastDay} from "../../interfaces";
+import type {IForecastDay} from "../../interfaces";
 
 interface IForecastProps {
-    forecast: ForecastDay[]
+    forecast: IForecastDay[]
 }
 
 const WeatherForecast: FC<IForecastProps> = ({forecast}) => {
     const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
-    const handleDayClick = (index: number) => {
+    const handleDayClickOpen = (index: number) => {
         setSelectedDay(index);
+    };
+
+    const handleDayClickClose = () => {
+        setSelectedDay(null);
     };
 
     return (
@@ -23,9 +27,9 @@ const WeatherForecast: FC<IForecastProps> = ({forecast}) => {
                         <p>Low: <span className="badge badge-primary">{day.day.mintemp_c}°C</span></p>
                         <p>Humidity: <span className="badge badge-info">{day.day.avghumidity}%</span></p>
                         <p>Wind Speed: <span className="badge badge-secondary">{day.day.maxwind_kph} km/h</span></p>
-                        <img src={day.day.condition.icon} alt={day.day.condition.text}/>
-                        <button className="btn btn-primary" onClick={() => handleDayClick(index)}>Details</button>
-                        {selectedDay === index && <WeatherDetails day={day}/>}
+                        <img src={day.day.condition.icon} height={50} width={50} alt={day.day.condition.text}/>
+                        <button className="btn btn-primary mr-1" onClick={() => handleDayClickOpen(index)}>Details</button>
+                        {selectedDay === index && <WeatherDetails day={day} handleDayClickClose={handleDayClickClose}/>}
                     </div>
                 </div>
             ))}

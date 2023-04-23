@@ -4,13 +4,14 @@ import {API_KEY, WeatherService} from "../../services/WeatherServices";
 import Alert from "../ui/Alert";
 import WeatherForecast from "./WeatherForecast";
 import WeatherSearch from "./WeatherSearch";
-import type {ForecastDay, WeatherData} from "../../interfaces";
+import "./Weather.css"
+import type {IForecastDay, IWeatherData} from "../../interfaces";
 
 const Weather: FC = () => {
-    const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-    const [city, setCity] = useState<string>('');
-    const [forecast, setForecast] = useState<ForecastDay[]>([]);
-    const [isCheck, setIsCheck] = useState(false);
+    const [weatherData, setWeatherData] = useState<IWeatherData | null>(null);
+    const [city, setCity] = useState('');
+    const [forecast, setForecast] = useState<IForecastDay[]>([]);
+    const [isCurrentPositionLoad, setIsCurrentPositionLoad] = useState(false);
     const [loading, setLoading] = useState(false);
     const [alert, setAlert] = useState({
         type: 'd-none',
@@ -19,9 +20,9 @@ const Weather: FC = () => {
 
     useEffect(() => {
         (async () => {
-            setLoading(true);
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(async (position) => {
+                    setLoading(true);
                     const {latitude, longitude} = position.coords;
                     const url = `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${latitude},${longitude}&aqi=no`;
 
@@ -29,10 +30,13 @@ const Weather: FC = () => {
                         const response = await axios.get(url);
                         setCity(response.data.location.name);
                         setWeatherData(response.data);
-                        setIsCheck(true)
-                        setLoading(false);
+                        setIsCurrentPositionLoad(true);
                     } catch (error) {
-                        console.log(error);
+                        setAlert({
+                            type: 'alert-danger',
+                            message: 'Not correct city'
+                        });
+                    } finally {
                         setLoading(false);
                     }
                 });
@@ -43,34 +47,37 @@ const Weather: FC = () => {
     useEffect(() => {
         async function fetchData() {
             const response = await WeatherService.getForecast(city);
-            response && setForecast(response.forecast.forecastday);
+            if (response) {
+                setForecast(response.forecast.forecastday);
+            }
         }
 
-        isCheck && fetchData();
-    }, [isCheck])
+        isCurrentPositionLoad && fetchData();
+    }, [isCurrentPositionLoad])
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setCity(event.target.value);
+        setCity(decodeURIComponent(event.target.value));
     };
 
     const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const data = await WeatherService.getWeatherData(city);
-        const response = await WeatherService.getForecast(city)
+        setLoading(true);
+        setWeatherData(null);
+        const [weather, forecast] = await Promise.all([WeatherService.getWeatherData(city), WeatherService.getForecast(city)]);
 
-        if (data && response) {
-            setForecast(response.forecast.forecastday);
-            setWeatherData(data);
-
+        if (weather && forecast) {
+            setForecast(forecast.forecast.forecastday);
+            setWeatherData(weather);
             setAlert({
                 type: 'd-none',
                 message: ''
             })
+            setLoading(false);
         } else {
             setWeatherData(null);
             setAlert({
                 type: 'alert-danger',
-                message: 'Не корректное значение ввода'
+                message: 'Not correct city'
             });
             setLoading(false);
         }
@@ -103,7 +110,7 @@ const Weather: FC = () => {
                 </>
             )}
             {loading && <div className="text-center">
-                <div className="spinner-border text-primary" style={{width: '3rem', height: '3rem'}} role="status">
+                <div className="spinner-border text-primary spinner-md" role="status">
                     <span className="sr-only">Loading...</span>
                 </div>
             </div>}
